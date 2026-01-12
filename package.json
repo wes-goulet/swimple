@@ -1,0 +1,48 @@
+{
+  "name": "swimple",
+  "version": "0.12.0",
+  "description": "A simple service worker library for request caching",
+  "type": "module",
+  "main": "./src/index.js",
+  "types": "./types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./types/index.d.ts",
+      "default": "./src/index.js"
+    },
+    "./headers": {
+      "types": "./types/headers.d.ts",
+      "default": "./src/headers.js"
+    }
+  },
+  "scripts": {
+    "test": "npm run test:unit && npm run test:e2e && npm run test:ui",
+    "test:unit": "node --test tests/**/*.unit.test.js",
+    "test:e2e": "node --test tests/**/*.e2e.test.js",
+    "test:ui": "playwright test",
+    "format:check": "prettier --check .",
+    "format:fix": "prettier --write .",
+    "prepublishOnly": "tsc src/*.js --declaration --allowJs --emitDeclarationOnly --rootDir src --outDir types --target esnext"
+  },
+  "keywords": [
+    "service-worker",
+    "cache",
+    "caching",
+    "sw",
+    "offline",
+    "pwa"
+  ],
+  "author": "wes@goulet.dev",
+  "license": "MIT",
+  "devDependencies": {
+    "@playwright/test": "^1.57.0",
+    "prettier": "^3.7.4",
+    "typescript": "^5.9.3"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "volta": {
+    "node": "24.12.0"
+  }
+}

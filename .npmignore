@@ -1,0 +1,19 @@
+# Test files
+tests/
+test-results/
+playwright-report/
+
+# Development config
+playwright.config.js
+.prettierrc.json
+
+# Internal documentation
+AGENTS.md
+.cursor/
+
+# Git files
+.gitignore
+
+# Package files
+*.tgz
+
