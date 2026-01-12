@@ -824,11 +824,6 @@ Contributions are welcome! Please open an issue or PR on GitHub.
 
 ## Links
 
-- [GitHub Repository](#)
-- [NPM Package](#)
-- [Documentation](#)
-- [Report Issues](#)
-
-## TODO
-
-- [ ] make a landing page (at https://swimple.goulet.dev) with example usage and a link to the documentation
+- [GitHub Repository](https://github.com/wes-goulet/swimple)
+- [NPM Package](https://www.npmjs.org/package/swimple)
+- [Report Issues](https://github.com/wes-goulet/swimple/issues)
