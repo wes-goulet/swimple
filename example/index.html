@@ -4,6 +4,38 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>swimple - Simple Service Worker Caching</title>
+    <link rel="icon" type="image/png" href="/logo.png" />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta
+      property="og:title"
+      content="swimple - Simple Service Worker Caching"
+    />
+    <meta
+      property="og:description"
+      content="A simple service worker library for request caching with automatic invalidation."
+    />
+    <meta property="og:image" content="/logo.png" />
+    <meta property="og:site_name" content="swimple" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary" />
+    <meta
+      name="twitter:title"
+      content="swimple - Simple Service Worker Caching"
+    />
+    <meta
+      name="twitter:description"
+      content="A simple service worker library for request caching with automatic invalidation."
+    />
+    <meta name="twitter:image" content="/logo.png" />
+
+    <!-- General meta -->
+    <meta
+      name="description"
+      content="A simple service worker library for request caching with automatic invalidation."
+    />
     <style>
       * {
         margin: 0;
@@ -40,6 +72,18 @@
         align-items: center;
         flex-wrap: wrap;
         gap: 1rem;
+      }
+
+      .header-logo {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+
+      .header-logo img {
+        width: 100px;
+        height: 100px;
+        flex-shrink: 0;
       }
 
       header h1 {
@@ -465,9 +509,12 @@
     <header>
       <div class="container">
         <div class="header-content">
-          <div>
-            <h1>swimple</h1>
-            <p>A simple service worker library for request caching</p>
+          <div class="header-logo">
+            <img src="/logo.svg" alt="swimple logo" />
+            <div>
+              <h1>swimple</h1>
+              <p>A simple service worker library for request caching</p>
+            </div>
           </div>
           <a
             href="https://github.com/wes-goulet/swimple"
@@ -496,7 +543,7 @@
         <h2>Simple, Automatic Request Caching</h2>
         <p>
           swimple provides automatic caching with smart invalidation for your
-          service worker. Minimal configuration, maximum performance.
+          service worker.
         </p>
       </section>
 

@@ -1,0 +1,18 @@
+<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- Hexagon (like service worker icon shape) -->
+  <path d="M 100 17.5 L 175 58.75 L 175 141.25 L 100 182.5 L 25 141.25 L 25 58.75 Z"
+        fill="#3b82f6"
+        stroke="#2563eb"
+        stroke-width="3"/>
+
+  <!-- "swimple" text inside hexagon -->
+  <text x="100" y="100"
+        font-family="system-ui, -apple-system, sans-serif"
+        font-size="22"
+        font-weight="700"
+        fill="white"
+        text-anchor="middle"
+        dominant-baseline="middle">
+    swimple
+  </text>
+</svg>
