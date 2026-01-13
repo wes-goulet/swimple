@@ -43,7 +43,7 @@ Create a simple, clean landing/marketing page similar to [side-drawer.goulet.dev
 ### `example/sw.js`
 
 - Service worker using swimple with default configuration
-- Import from CDN: `https://cdn.jsdelivr.net/npm/swimple@0.12.1/index.js`
+- Import from CDN: `https://cdn.jsdelivr.net/npm/swimple@1.0.0/index.js`
 - Import `customFetch` from `./mock-api.js` for mock API responses
 - Configuration:
 - `cacheName: "sw-cache-v1"`
