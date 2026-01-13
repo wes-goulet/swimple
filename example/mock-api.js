@@ -248,10 +248,9 @@ async function handleMockMutation(request) {
  * This function intercepts /api/* requests and returns mock responses.
  * swimple will use this function when making network requests, so mock responses
  * will be properly cached by swimple.
- * @param {Request} request
- * @returns {Promise<Response>}
+ * @type {typeof globalThis.fetch}
  */
-export async function customFetch(request) {
+export const customFetch = async (request) => {
   const url = new URL(request.url);
 
   // Only intercept /api/* requests
@@ -280,4 +279,4 @@ export async function customFetch(request) {
 
   // Fallback to normal fetch for any other requests
   return fetch(request);
-}
+};

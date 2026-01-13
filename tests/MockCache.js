@@ -52,49 +52,12 @@ export class MockCacheStorage {
                   // Match by pathname only (ignore query parameters)
                   if (cachedPathname === requestPathname) {
                     const clonedResponse = response.clone();
-                    // Ensure cloned response has URL property set to cachedUrl
-                    // Response.clone() doesn't preserve custom properties, so we need to set it
-                    // Always set the URL if it's missing or doesn't match
-                    if (
-                      !clonedResponse.url ||
-                      clonedResponse.url !== cachedUrl
-                    ) {
-                      try {
-                        Object.defineProperty(clonedResponse, "url", {
-                          value: cachedUrl,
-                          writable: false,
-                          enumerable: true,
-                          configurable: true
-                        });
-                      } catch {
-                        // Property might already exist and not be configurable
-                        // In practice, this shouldn't happen if createMockFetch sets URLs correctly
-                      }
-                    }
                     matchingResponses.push(clonedResponse);
                   }
                 } else {
                   // Exact match (including query parameters)
                   if (cachedUrl === requestUrl) {
                     const clonedResponse = response.clone();
-                    // Ensure cloned response has URL property set to cachedUrl
-                    // Always set the URL if it's missing or doesn't match
-                    if (
-                      !clonedResponse.url ||
-                      clonedResponse.url !== cachedUrl
-                    ) {
-                      try {
-                        Object.defineProperty(clonedResponse, "url", {
-                          value: cachedUrl,
-                          writable: false,
-                          enumerable: true,
-                          configurable: true
-                        });
-                      } catch {
-                        // Property might already exist and not be configurable
-                        // In practice, this shouldn't happen if createMockFetch sets URLs correctly
-                      }
-                    }
                     matchingResponses.push(clonedResponse);
                   }
                 }
@@ -107,15 +70,6 @@ export class MockCacheStorage {
             const response = this._entries.get(requestUrl);
             if (response) {
               const clonedResponse = response.clone();
-              // Ensure cloned response has URL property set to requestUrl
-              if (!clonedResponse.url) {
-                Object.defineProperty(clonedResponse, "url", {
-                  value: requestUrl,
-                  writable: false,
-                  enumerable: true,
-                  configurable: true
-                });
-              }
               matchingResponses.push(clonedResponse);
             }
           }
@@ -133,14 +87,40 @@ export class MockCacheStorage {
         },
         /**
          * @param {Request | string} request
+         * @param {{ ignoreSearch?: boolean }} options
          * @returns {Promise<boolean>}
          */
-        async delete(request) {
+        async delete(request, options = {}) {
           const url = typeof request === "string" ? request : request.url;
+          const ignoreSearch = options.ignoreSearch === true;
 
-          // Try exact match first
-          if (this._entries.has(url)) {
+          // Try exact match first (unless ignoreSearch is true)
+          if (!ignoreSearch && this._entries.has(url)) {
             return this._entries.delete(url);
+          }
+
+          // If ignoreSearch is true, delete all entries matching pathname
+          if (ignoreSearch) {
+            try {
+              const requestUrlObj = new URL(url);
+              const requestPathname = requestUrlObj.pathname;
+              let deleted = false;
+
+              for (const [cachedUrl] of this._entries.entries()) {
+                try {
+                  const cachedUrlObj = new URL(cachedUrl);
+                  if (cachedUrlObj.pathname === requestPathname) {
+                    this._entries.delete(cachedUrl);
+                    deleted = true;
+                  }
+                } catch {
+                  // Invalid URL, skip
+                }
+              }
+              return deleted;
+            } catch {
+              // Invalid URL, fall through to other matching logic
+            }
           }
 
           // If it's a path (starts with /), try to match against pathname of cached URLs

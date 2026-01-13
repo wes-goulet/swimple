@@ -125,13 +125,9 @@ export function isStale(response, ttl, staleTTL) {
  * @returns {Response}
  */
 export function addTimestamp(response) {
-  const headers = new Headers(response.headers);
-  headers.set(CACHE_TIMESTAMP_HEADER, Date.now().toString());
-  return new Response(response.body, {
-    status: response.status,
-    statusText: response.statusText,
-    headers: headers
-  });
+  const clonedResponse = response.clone();
+  clonedResponse.headers.set(CACHE_TIMESTAMP_HEADER, Date.now().toString());
+  return clonedResponse;
 }
 
 /**
@@ -242,86 +238,26 @@ export function matchesScope(url, scope, defaultTTLSeconds) {
  * Matches cache entries by pathname (ignoring query parameters), so invalidating
  * "/api/users" will also invalidate "/api/users?org_id=123" and other query variants.
  * @param {string} cacheName
- * @param {string[]} urls
+ * @param {string[]} urls - Array of full URLs to invalidate (should already be normalized to full URLs)
  * @returns {Promise<void>}
  */
 export async function invalidateCache(cacheName, urls) {
   const cache = await caches.open(cacheName);
-  const deletePromises = [];
   const invalidatedUrls = [];
 
-  // Determine origin for constructing full URLs from relative paths
-  // Try self.location.origin first (service worker context)
-  // Otherwise, extract from URLs array if any are full URLs
-  let cacheOrigin = null;
-  if (typeof self !== "undefined" && self.location && self.location.origin) {
-    cacheOrigin = self.location.origin;
-  } else {
-    // Try to extract origin from URLs array
-    for (const url of urls) {
-      try {
-        const urlObj = new URL(url);
-        cacheOrigin = urlObj.origin;
-        break; // Use first valid origin found
-      } catch {
-        // Not a full URL, continue
-      }
-    }
-  }
-
-  if (!cacheOrigin) {
-    throw new Error(
-      "Cannot determine origin for relative paths. self.location.origin is not available and no full URLs provided."
-    );
-  }
-
-  // Iterate over URLs to invalidate (typically much smaller than cache size)
-  // Use matchAll with ignoreSearch to avoid loading all cache keys into memory
+  // Iterate over URLs to invalidate
   for (const url of urls) {
     try {
-      // Create a Request object for matching
-      // If URL is relative, construct a full URL using the cache origin
-      let requestUrl = url;
-      try {
-        // Try to parse as URL - if it fails, it might be relative
-        new URL(url);
-      } catch {
-        // If relative, construct a full URL
-        requestUrl = new URL(url, cacheOrigin).toString();
+      // Use cache.delete with ignoreSearch to delete all entries matching this pathname
+      // (ignoring query parameters). This deletes all variants with different query params.
+      const deleted = await cache.delete(url, { ignoreSearch: true });
+      if (deleted) {
+        invalidatedUrls.push(url);
       }
-
-      // Create a GET request for matching (cached entries are always GET requests)
-      const request = new Request(requestUrl, { method: "GET" });
-
-      // Use matchAll with ignoreSearch to find all cache entries matching this pathname
-      // (ignoring query parameters). This avoids loading all cache keys into memory.
-      const matchingResponses = await cache.matchAll(request, {
-        ignoreSearch: true
-      });
-
-      // Delete all matching entries
-      // matchAll returns Response objects; construct Request objects for delete()
-      for (const response of matchingResponses) {
-        const responseUrl = response.url;
-        const requestToDelete = new Request(responseUrl);
-        deletePromises.push(cache.delete(requestToDelete));
-        invalidatedUrls.push(responseUrl);
-      }
-    } catch (error) {
-      // If URL parsing or matching fails, try exact match as fallback
-      try {
-        const request = new Request(url);
-        const deleted = await cache.delete(request);
-        if (deleted) {
-          invalidatedUrls.push(url);
-        }
-      } catch {
-        // Ignore errors for invalid URLs
-      }
+    } catch {
+      // Ignore errors for invalid URLs
     }
   }
-
-  await Promise.allSettled(deletePromises);
 
   // Log each invalidated URL
   invalidatedUrls.forEach((url) => {
