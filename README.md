@@ -477,6 +477,27 @@ fetch("/api/users/123", {
 
 **Note:** There is also an internal `CACHE_TIMESTAMP_HEADER` constant (`"x-sw-cache-timestamp"`), but this is used internally by the library and should not be set manually.
 
+### Detecting Cache Hits
+
+**Important:** Responses returned from cache will have the `x-sw-cache-timestamp` header set. Responses fetched from the network will **not** have this header (unless your server actually does set that header but that seems unlikely). The presence of this header is a reliable way to determine if a response came from cache or network.
+
+```javascript
+const response = await fetch("/api/users");
+const isFromCache = response.headers.get("x-sw-cache-timestamp") !== null;
+
+if (isFromCache) {
+  console.log("Response came from cache");
+} else {
+  console.log("Response came from network");
+}
+```
+
+This works for all caching strategies:
+
+- **cache-first**: Cached responses (fresh or stale) will have the header
+- **network-first**: Cached responses returned as fallback will have the header
+- **stale-while-revalidate**: Cached responses (fresh or stale) will have the header
+
 ## Caching Behavior
 
 ### Automatic Caching (Default)
@@ -773,6 +794,7 @@ self.addEventListener("fetch", (event) => {
 - All headers are case-insensitive (per HTTP spec)
 - TTL of `0` completely opts out of caching for a request - the handler returns `null` immediately without checking cache, making network requests, or processing the request.
 - Cache entries store only the timestamp of when they were cached. The TTL is not stored; it's provided by each request (or set with a default via `createHandleRequest` config) and the freshness or staleness is calculated at request time. This means one request could use a longer TTL than another request and therefore allow a later expiration time.
+- **Cache detection**: Responses returned from cache will have the `x-sw-cache-timestamp` header set. Responses fetched from the network will **not** have this header. The presence of this header is a reliable way to determine if a response came from cache or network. See the [Detecting Cache Hits](#detecting-cache-hits) section for more details.
 
 ## Error Handling
 

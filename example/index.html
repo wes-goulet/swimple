@@ -34,6 +34,14 @@
         margin-bottom: 3rem;
       }
 
+      .header-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+      }
+
       header h1 {
         font-size: 2.5rem;
         color: #2563eb;
@@ -43,6 +51,32 @@
       header p {
         font-size: 1.2rem;
         color: #666;
+      }
+
+      .github-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.5rem;
+        background: #2563eb;
+        color: #fff;
+        text-decoration: none;
+        border-radius: 6px;
+        font-size: 1rem;
+        font-weight: 500;
+        transition: background 0.2s;
+        white-space: nowrap;
+      }
+
+      .github-link:hover {
+        background: #1d4ed8;
+        text-decoration: none;
+      }
+
+      .github-link svg {
+        width: 20px;
+        height: 20px;
+        fill: currentColor;
       }
 
       /* Hero Section */
@@ -231,8 +265,8 @@
       }
 
       .cache-entry-header {
-        display: grid;
-        grid-template-columns: 1fr auto auto;
+        display: flex;
+        flex-wrap: wrap;
         gap: 1rem;
         align-items: center;
         margin-bottom: 0.5rem;
@@ -309,18 +343,22 @@
         font-family: "Courier New", monospace;
         font-size: 0.9rem;
         word-break: break-all;
+        flex: 1 1 100%;
+        min-width: 0;
       }
 
       .cache-entry-time {
         color: #64748b;
         font-size: 0.875rem;
         white-space: nowrap;
+        flex-shrink: 0;
       }
 
       .cache-entry-age {
         color: #64748b;
         font-size: 0.875rem;
         white-space: nowrap;
+        flex-shrink: 0;
       }
 
       .cache-empty {
@@ -396,9 +434,29 @@
           font-size: 2rem;
         }
 
-        .cache-entry {
-          grid-template-columns: 1fr;
-          gap: 0.5rem;
+        .header-content {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+
+        .github-link {
+          width: 100%;
+          justify-content: center;
+        }
+
+        .cache-entry-header {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+
+        .cache-entry-url {
+          flex: 1 1 100%;
+          width: 100%;
+        }
+
+        .cache-entry-time,
+        .cache-entry-age {
+          flex: 0 0 auto;
         }
       }
     </style>
@@ -406,8 +464,29 @@
   <body>
     <header>
       <div class="container">
-        <h1>swimple</h1>
-        <p>A simple service worker library for request caching</p>
+        <div class="header-content">
+          <div>
+            <h1>swimple</h1>
+            <p>A simple service worker library for request caching</p>
+          </div>
+          <a
+            href="https://github.com/wes-goulet/swimple"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="github-link"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+              aria-hidden="true"
+            >
+              <path
+                d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.17 6.839 9.49.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.603-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.463-1.11-1.463-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0112 6.836c.85.004 1.705.114 2.504.336 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.167 22 16.418 22 12c0-5.523-4.477-10-10-10z"
+              />
+            </svg>
+            View on GitHub
+          </a>
+        </div>
       </div>
     </header>
 
@@ -759,8 +838,10 @@ self.addEventListener("fetch", (event) => {
           const data = await response.json();
 
           // Determine if response came from cache
-          // If duration is very short (< 50ms), it's likely from cache
-          const isCacheHit = duration < 50 && options.method === "GET";
+          // If response has x-sw-cache-timestamp header, it came from cache
+          // (swimple only adds this header when caching, not on network responses)
+          const isCacheHit =
+            response.headers.get("x-sw-cache-timestamp") !== null;
 
           responseSource.innerHTML = isCacheHit
             ? '<span class="badge cache-hit">Cache Hit</span>'

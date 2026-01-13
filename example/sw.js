@@ -49,6 +49,6 @@ _self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // By simply returning, we let the browser handle the request (ie: fetch from network)
+  // By simply returning, we let the browser handle the request
   return;
 });

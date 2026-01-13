@@ -91,7 +91,8 @@ describe("createHandleRequest", () => {
       // First request - should fetch from network and cache the response
       const firstEvent = createFetchEvent(request);
       const firstResult = await handleRequest(firstEvent);
-      const firstText = await firstResult?.text();
+      assert(firstResult, "First request should return a response");
+      const firstText = await firstResult.text();
 
       assert.strictEqual(firstText, "Network data");
       assert.strictEqual(
@@ -100,16 +101,32 @@ describe("createHandleRequest", () => {
         "Fetch should be called on first request"
       );
 
+      // Verify network response does NOT have x-sw-cache-timestamp header
+      // (header is only added when caching, not on network responses)
+      assert.strictEqual(
+        firstResult.headers.get("x-sw-cache-timestamp"),
+        null,
+        "Network response should not have x-sw-cache-timestamp header"
+      );
+
       // Second request - should return from cache without network call
       const secondEvent = createFetchEvent(request);
       const secondResult = await handleRequest(secondEvent);
-      const secondText = await secondResult?.text();
+      assert(secondResult, "Second request should return a response");
+      const secondText = await secondResult.text();
 
       assert.strictEqual(secondText, "Network data");
       assert.strictEqual(
         getCallCount(),
         1,
         "Fetch should not be called on second request"
+      );
+
+      // Verify cached response has x-sw-cache-timestamp header
+      assert.notStrictEqual(
+        secondResult.headers.get("x-sw-cache-timestamp"),
+        null,
+        "Cached response should have x-sw-cache-timestamp header"
       );
     });
 
@@ -298,9 +315,17 @@ describe("createHandleRequest", () => {
       // Second request - should return stale cache when network fails
       const secondEvent = createFetchEvent(request);
       const secondResult = await handleRequest(secondEvent);
-      const secondText = await secondResult?.text();
+      assert(secondResult, "Should return cached response");
+      const secondText = await secondResult.text();
 
       assert.strictEqual(secondText, "Cached data");
+
+      // Verify cached response has x-sw-cache-timestamp header
+      assert.notStrictEqual(
+        secondResult.headers.get("x-sw-cache-timestamp"),
+        null,
+        "Cached response should have x-sw-cache-timestamp header"
+      );
     });
 
     test("throws error when network fails and cache is too stale", async (testContext) => {
@@ -471,12 +496,20 @@ describe("createHandleRequest", () => {
       // First request - populate cache
       const firstEvent = createFetchEvent(request);
       const firstResult = await handleRequest(firstEvent);
-      const firstText = await firstResult?.text();
+      assert(firstResult, "Should return a response");
+      const firstText = await firstResult.text();
       assert.strictEqual(firstText, "Cached data");
       assert.strictEqual(
         getCallCount(),
         1,
         "Fetch should be called on first request"
+      );
+
+      // Verify network response does NOT have x-sw-cache-timestamp header
+      assert.strictEqual(
+        firstResult.headers.get("x-sw-cache-timestamp"),
+        null,
+        "Network response should not have x-sw-cache-timestamp header"
       );
 
       // Reset mock fetch to fail
@@ -489,6 +522,13 @@ describe("createHandleRequest", () => {
       const secondText = await secondResult.text();
 
       assert.strictEqual(secondText, "Cached data");
+
+      // Verify cached response has x-sw-cache-timestamp header
+      assert.notStrictEqual(
+        secondResult.headers.get("x-sw-cache-timestamp"),
+        null,
+        "Cached response should have x-sw-cache-timestamp header"
+      );
     });
 
     test("falls back to stale cache when network fails", async (testContext) => {
@@ -529,6 +569,13 @@ describe("createHandleRequest", () => {
       const secondText = await secondResult.text();
 
       assert.strictEqual(secondText, "Stale cached data");
+
+      // Verify stale cached response has x-sw-cache-timestamp header
+      assert.notStrictEqual(
+        secondResult.headers.get("x-sw-cache-timestamp"),
+        null,
+        "Stale cached response should have x-sw-cache-timestamp header"
+      );
 
       // Reset timers
       testContext.mock.timers.reset();
@@ -596,7 +643,8 @@ describe("createHandleRequest", () => {
       // First request - populate cache
       const firstEvent = createFetchEvent(request);
       const firstResult = await handleRequest(firstEvent);
-      const firstText = await firstResult?.text();
+      assert(firstResult, "Should return a response");
+      const firstText = await firstResult.text();
       assert.strictEqual(firstText, "Cached data");
       assert.strictEqual(
         getCallCount(),
@@ -604,16 +652,31 @@ describe("createHandleRequest", () => {
         "Fetch should be called on first request"
       );
 
+      // Verify network response does NOT have x-sw-cache-timestamp header
+      assert.strictEqual(
+        firstResult.headers.get("x-sw-cache-timestamp"),
+        null,
+        "Network response should not have x-sw-cache-timestamp header"
+      );
+
       // Second request - should return from cache without calling fetch
       const secondEvent = createFetchEvent(request);
       const secondResult = await handleRequest(secondEvent);
-      const secondText = await secondResult?.text();
+      assert(secondResult, "Should return cached response");
+      const secondText = await secondResult.text();
 
       assert.strictEqual(secondText, "Cached data");
       assert.strictEqual(
         getCallCount(),
         1,
         "Fetch should not be called on second request"
+      );
+
+      // Verify cached response has x-sw-cache-timestamp header
+      assert.notStrictEqual(
+        secondResult.headers.get("x-sw-cache-timestamp"),
+        null,
+        "Cached response should have x-sw-cache-timestamp header"
       );
     });
 
@@ -657,9 +720,17 @@ describe("createHandleRequest", () => {
       // Second request - should return stale cache immediately
       const secondEvent = createFetchEvent(request);
       const secondResult = await handleRequest(secondEvent);
-      const secondText = await secondResult?.text();
+      assert(secondResult, "Should return cached response");
+      const secondText = await secondResult.text();
 
       assert.strictEqual(secondText, "Stale cached data");
+
+      // Verify stale cached response has x-sw-cache-timestamp header
+      assert.notStrictEqual(
+        secondResult.headers.get("x-sw-cache-timestamp"),
+        null,
+        "Stale cached response should have x-sw-cache-timestamp header"
+      );
 
       // Advance time for background update to complete
       testContext.mock.timers.tick(200);
