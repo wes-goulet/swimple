@@ -1,0 +1,813 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>swimple - Simple Service Worker Caching</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu,
+          Cantarell, sans-serif;
+        line-height: 1.6;
+        color: #333;
+        background: #f5f5f5;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 20px;
+      }
+
+      /* Header */
+      header {
+        background: #fff;
+        border-bottom: 1px solid #e0e0e0;
+        padding: 2rem 0;
+        margin-bottom: 3rem;
+      }
+
+      header h1 {
+        font-size: 2.5rem;
+        color: #2563eb;
+        margin-bottom: 0.5rem;
+      }
+
+      header p {
+        font-size: 1.2rem;
+        color: #666;
+      }
+
+      /* Hero Section */
+      .hero {
+        text-align: center;
+        padding: 3rem 0;
+        background: #fff;
+        border-radius: 8px;
+        margin-bottom: 3rem;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .hero h2 {
+        font-size: 2rem;
+        margin-bottom: 1rem;
+        color: #1e293b;
+      }
+
+      .hero p {
+        font-size: 1.1rem;
+        color: #64748b;
+        max-width: 600px;
+        margin: 0 auto;
+      }
+
+      /* Features Section */
+      .features {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 3rem;
+      }
+
+      .feature {
+        background: #fff;
+        padding: 1.5rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .feature h3 {
+        color: #2563eb;
+        margin-bottom: 0.5rem;
+      }
+
+      .feature p {
+        color: #64748b;
+      }
+
+      /* Demo Section */
+      .demo {
+        background: #fff;
+        padding: 2rem;
+        border-radius: 8px;
+        margin-bottom: 3rem;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .demo h2 {
+        margin-bottom: 1.5rem;
+        color: #1e293b;
+      }
+
+      .demo-controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-bottom: 2rem;
+      }
+
+      button {
+        padding: 0.75rem 1.5rem;
+        background: #2563eb;
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 1rem;
+        transition: background 0.2s;
+      }
+
+      button:hover {
+        background: #1d4ed8;
+      }
+
+      button:disabled {
+        background: #94a3b8;
+        cursor: not-allowed;
+      }
+
+      button.secondary {
+        background: #64748b;
+      }
+
+      button.secondary:hover {
+        background: #475569;
+      }
+
+      button.danger {
+        background: #dc2626;
+      }
+
+      button.danger:hover {
+        background: #b91c1c;
+      }
+
+      .response-area {
+        background: #f8f9fa;
+        border: 1px solid #e0e0e0;
+        border-radius: 6px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        min-height: 100px;
+        font-family: "Courier New", monospace;
+        font-size: 0.9rem;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+      }
+
+      .response-info {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1rem;
+        flex-wrap: wrap;
+      }
+
+      .badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 4px;
+        font-size: 0.875rem;
+        font-weight: 500;
+      }
+
+      .badge.cache-hit {
+        background: #10b981;
+        color: #fff;
+      }
+
+      .badge.network {
+        background: #3b82f6;
+        color: #fff;
+      }
+
+      .badge.error {
+        background: #ef4444;
+        color: #fff;
+      }
+
+      /* Cache Inspector Section */
+      .cache-inspector {
+        background: #fff;
+        padding: 2rem;
+        border-radius: 8px;
+        margin-bottom: 3rem;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .cache-inspector h2 {
+        margin-bottom: 1rem;
+        color: #1e293b;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+
+      .cache-inspector-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+      }
+
+      .cache-entries {
+        border: 1px solid #e0e0e0;
+        border-radius: 6px;
+        overflow: hidden;
+      }
+
+      .cache-entry {
+        padding: 1rem;
+        border-bottom: 1px solid #e0e0e0;
+        transition: background 0.2s;
+      }
+
+      .cache-entry-header {
+        display: grid;
+        grid-template-columns: 1fr auto auto;
+        gap: 1rem;
+        align-items: center;
+        margin-bottom: 0.5rem;
+      }
+
+      .cache-entry-body {
+        margin-top: 0.75rem;
+        padding: 0.75rem;
+        background: #f8f9fa;
+        border: 1px solid #e0e0e0;
+        border-radius: 4px;
+        font-family: "Courier New", monospace;
+        font-size: 0.85rem;
+        max-height: 200px;
+        overflow-y: auto;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+      }
+
+      .cache-entry-body-toggle {
+        margin-top: 0.5rem;
+        padding: 0.25rem 0.5rem;
+        background: #e0e0e0;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.75rem;
+        color: #64748b;
+      }
+
+      .cache-entry-body-toggle:hover {
+        background: #d0d0d0;
+      }
+
+      .cache-entry-body.hidden {
+        display: none;
+      }
+
+      .cache-entry:last-child {
+        border-bottom: none;
+      }
+
+      .cache-entry.new {
+        background: #d1fae5;
+        animation: flash-green 0.5s;
+      }
+
+      .cache-entry.removed {
+        background: #fee2e2;
+        animation: flash-red 0.5s;
+      }
+
+      @keyframes flash-green {
+        0%,
+        100% {
+          background: #d1fae5;
+        }
+        50% {
+          background: #10b981;
+        }
+      }
+
+      @keyframes flash-red {
+        0%,
+        100% {
+          background: #fee2e2;
+        }
+        50% {
+          background: #ef4444;
+        }
+      }
+
+      .cache-entry-url {
+        font-family: "Courier New", monospace;
+        font-size: 0.9rem;
+        word-break: break-all;
+      }
+
+      .cache-entry-time {
+        color: #64748b;
+        font-size: 0.875rem;
+        white-space: nowrap;
+      }
+
+      .cache-entry-age {
+        color: #64748b;
+        font-size: 0.875rem;
+        white-space: nowrap;
+      }
+
+      .cache-empty {
+        padding: 3rem;
+        text-align: center;
+        color: #94a3b8;
+      }
+
+      /* Code Example Section */
+      .code-example {
+        background: #fff;
+        padding: 2rem;
+        border-radius: 8px;
+        margin-bottom: 3rem;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .code-example h2 {
+        margin-bottom: 1rem;
+        color: #1e293b;
+      }
+
+      .code-example pre {
+        background: #1e293b;
+        color: #e2e8f0;
+        padding: 1.5rem;
+        border-radius: 6px;
+        overflow-x: auto;
+        font-size: 0.9rem;
+        line-height: 1.6;
+      }
+
+      .code-example code {
+        font-family: "Courier New", monospace;
+      }
+
+      /* Footer */
+      footer {
+        text-align: center;
+        padding: 2rem 0;
+        color: #64748b;
+        border-top: 1px solid #e0e0e0;
+        margin-top: 3rem;
+      }
+
+      footer a {
+        color: #2563eb;
+        text-decoration: none;
+      }
+
+      footer a:hover {
+        text-decoration: underline;
+      }
+
+      .status-indicator {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        margin-right: 0.5rem;
+      }
+
+      .status-indicator.online {
+        background: #10b981;
+      }
+
+      .status-indicator.offline {
+        background: #ef4444;
+      }
+
+      @media (max-width: 768px) {
+        header h1 {
+          font-size: 2rem;
+        }
+
+        .cache-entry {
+          grid-template-columns: 1fr;
+          gap: 0.5rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="container">
+        <h1>swimple</h1>
+        <p>A simple service worker library for request caching</p>
+      </div>
+    </header>
+
+    <div class="container">
+      <!-- Hero Section -->
+      <section class="hero">
+        <h2>Simple, Automatic Request Caching</h2>
+        <p>
+          swimple provides automatic caching with smart invalidation for your
+          service worker. Minimal configuration, maximum performance.
+        </p>
+      </section>
+
+      <!-- Features Section -->
+      <section class="features">
+        <div class="feature">
+          <h3>⚡ Low Configuration</h3>
+          <p>
+            Request caching with automatic invalidation by default - minimal
+            setup required
+          </p>
+        </div>
+        <div class="feature">
+          <h3>🔄 Smart Invalidation</h3>
+          <p>
+            Automatically invalidate cache on mutations (POST/PATCH/PUT/DELETE)
+          </p>
+        </div>
+        <div class="feature">
+          <h3>🎛️ Flexible Strategies</h3>
+          <p>
+            Support for cache-first, network-first, and stale-while-revalidate
+          </p>
+        </div>
+        <div class="feature">
+          <h3>🪶 Lightweight</h3>
+          <p>Single-purpose library with no dependencies</p>
+        </div>
+      </section>
+
+      <!-- Demo Section -->
+      <section class="demo">
+        <h2>Try It Out</h2>
+        <p style="margin-bottom: 1.5rem; color: #64748b">
+          Make API requests and watch them get cached automatically. Try
+          mutations to see cache invalidation in action.
+        </p>
+
+        <div class="demo-controls">
+          <button id="btn-get-users">GET /api/users</button>
+          <button id="btn-get-user-1">GET /api/users/1</button>
+          <button id="btn-get-posts">GET /api/posts</button>
+          <button id="btn-create-user">POST Create User</button>
+          <button id="btn-update-user">PATCH Update User</button>
+          <button id="btn-delete-user">DELETE User</button>
+        </div>
+
+        <div class="response-info">
+          <span id="response-source"></span>
+          <span id="response-time"></span>
+        </div>
+
+        <div class="response-area" id="response-area">
+          Click a button above to make an API request...
+        </div>
+      </section>
+
+      <!-- Cache Inspector Section -->
+      <section class="cache-inspector">
+        <div class="cache-inspector-header">
+          <h2>
+            <span class="status-indicator online" id="sw-status"></span>
+            Cache Inspector
+          </h2>
+          <button class="secondary" id="btn-refresh-cache">
+            Refresh Cache
+          </button>
+        </div>
+        <p style="margin-bottom: 1rem; color: #64748b">
+          These are the entries in the browser's cache that swimple has handled.
+        </p>
+        <div class="cache-entries" id="cache-entries">
+          <div class="cache-empty">Loading cache entries...</div>
+        </div>
+      </section>
+
+      <!-- Code Example Section -->
+      <section class="code-example">
+        <h2>Quick Start</h2>
+        <pre><code>// sw.js
+import { createHandleRequest } from "https://cdn.jsdelivr.net/npm/swimple@0.12.1/index.js";
+
+const handleRequest = createHandleRequest({
+  cacheName: "sw-cache-v1",
+  scope: ["/api/"]
+});
+
+self.addEventListener("fetch", (event) => {
+  const response = handleRequest(event);
+  if (response) {
+    event.respondWith(response);
+  }
+});</code></pre>
+      </section>
+    </div>
+
+    <footer>
+      <div class="container">
+        <p>
+          <a href="https://github.com/wes-goulet/swimple" target="_blank"
+            >View on GitHub</a
+          >
+          |
+          <a href="https://www.npmjs.com/package/swimple" target="_blank"
+            >npm package</a
+          >
+        </p>
+      </div>
+    </footer>
+
+    <script type="module">
+      const CACHE_NAME = "sw-cache-v1";
+
+      // Register service worker
+      if ("serviceWorker" in navigator) {
+        try {
+          const registration = await navigator.serviceWorker.register(
+            "/sw.js",
+            { type: "module" }
+          );
+          console.log("Service worker registered:", registration);
+
+          // Update status indicator
+          updateServiceWorkerStatus();
+
+          // Listen for service worker updates
+          registration.addEventListener("updatefound", () => {
+            updateServiceWorkerStatus();
+          });
+        } catch (error) {
+          console.error("Error registering service worker:", error);
+          document.getElementById("sw-status").classList.remove("online");
+          document.getElementById("sw-status").classList.add("offline");
+        }
+      }
+
+      function updateServiceWorkerStatus() {
+        if (navigator.serviceWorker.controller) {
+          document.getElementById("sw-status").classList.add("online");
+          document.getElementById("sw-status").classList.remove("offline");
+        } else {
+          document.getElementById("sw-status").classList.remove("online");
+          document.getElementById("sw-status").classList.add("offline");
+        }
+      }
+
+      // Cache Inspector
+      let previousCacheEntries = new Set();
+
+      async function refreshCacheDisplay() {
+        try {
+          const cache = await caches.open(CACHE_NAME);
+          const keys = await cache.keys();
+          const currentEntries = new Set(keys.map((k) => k.url));
+
+          // Get cache entries with timestamps and body content
+          const entries = await Promise.all(
+            keys.map(async (request) => {
+              const response = await cache.match(request);
+              const timestampHeader = response.headers.get(
+                "x-sw-cache-timestamp"
+              );
+              const timestamp = timestampHeader
+                ? parseInt(timestampHeader, 10)
+                : null;
+
+              // Read response body
+              let bodyText = "";
+              let bodyParsed = null;
+              try {
+                const contentType = response.headers.get("content-type") || "";
+                bodyText = await response.clone().text();
+                if (contentType.includes("application/json")) {
+                  try {
+                    bodyParsed = JSON.parse(bodyText);
+                  } catch {
+                    // Not valid JSON, use text as-is
+                  }
+                }
+              } catch (error) {
+                bodyText = `Error reading body: ${error.message}`;
+              }
+
+              return {
+                url: request.url,
+                timestamp,
+                bodyText,
+                bodyParsed
+              };
+            })
+          );
+
+          // Sort by timestamp (newest first)
+          entries.sort((a, b) => {
+            if (!a.timestamp) return 1;
+            if (!b.timestamp) return -1;
+            return b.timestamp - a.timestamp;
+          });
+
+          const container = document.getElementById("cache-entries");
+          container.innerHTML = "";
+
+          if (entries.length === 0) {
+            container.innerHTML =
+              '<div class="cache-empty">Cache is empty</div>';
+            previousCacheEntries.clear();
+            return;
+          }
+
+          entries.forEach((entry) => {
+            const entryEl = document.createElement("div");
+            entryEl.className = "cache-entry";
+
+            // Check if this is a new or removed entry
+            const wasPresent = previousCacheEntries.has(entry.url);
+            const isPresent = currentEntries.has(entry.url);
+
+            if (isPresent && !wasPresent) {
+              entryEl.classList.add("new");
+              setTimeout(() => entryEl.classList.remove("new"), 1000);
+            } else if (!isPresent && wasPresent) {
+              entryEl.classList.add("removed");
+              setTimeout(() => entryEl.classList.remove("removed"), 1000);
+            }
+
+            // Header section
+            const headerEl = document.createElement("div");
+            headerEl.className = "cache-entry-header";
+
+            const urlEl = document.createElement("div");
+            urlEl.className = "cache-entry-url";
+            urlEl.textContent = entry.url;
+
+            const timeEl = document.createElement("div");
+            timeEl.className = "cache-entry-time";
+            if (entry.timestamp) {
+              const date = new Date(entry.timestamp);
+              timeEl.textContent = date.toLocaleString();
+            } else {
+              timeEl.textContent = "Unknown";
+            }
+
+            const ageEl = document.createElement("div");
+            ageEl.className = "cache-entry-age";
+            if (entry.timestamp) {
+              const age = Date.now() - entry.timestamp;
+              ageEl.textContent = formatAge(age);
+            } else {
+              ageEl.textContent = "Unknown";
+            }
+
+            headerEl.appendChild(urlEl);
+            headerEl.appendChild(timeEl);
+            headerEl.appendChild(ageEl);
+            entryEl.appendChild(headerEl);
+
+            // Body section (collapsible)
+            if (entry.bodyText) {
+              const bodyToggle = document.createElement("button");
+              bodyToggle.className = "cache-entry-body-toggle";
+              bodyToggle.textContent = "Show body";
+              bodyToggle.type = "button";
+
+              const bodyEl = document.createElement("div");
+              bodyEl.className = "cache-entry-body hidden";
+              if (entry.bodyParsed) {
+                bodyEl.textContent = JSON.stringify(entry.bodyParsed, null, 2);
+              } else {
+                bodyEl.textContent = entry.bodyText;
+              }
+
+              bodyToggle.addEventListener("click", () => {
+                const isHidden = bodyEl.classList.contains("hidden");
+                if (isHidden) {
+                  bodyEl.classList.remove("hidden");
+                  bodyToggle.textContent = "Hide body";
+                } else {
+                  bodyEl.classList.add("hidden");
+                  bodyToggle.textContent = "Show body";
+                }
+              });
+
+              entryEl.appendChild(bodyToggle);
+              entryEl.appendChild(bodyEl);
+            }
+
+            container.appendChild(entryEl);
+          });
+
+          previousCacheEntries = currentEntries;
+        } catch (error) {
+          console.error("Error refreshing cache:", error);
+          document.getElementById("cache-entries").innerHTML =
+            '<div class="cache-empty">Error loading cache entries</div>';
+        }
+      }
+
+      function formatAge(ms) {
+        const seconds = Math.floor(ms / 1000);
+        if (seconds < 60) {
+          return `${seconds} second${seconds !== 1 ? "s" : ""} ago`;
+        }
+        const minutes = Math.floor(seconds / 60);
+        if (minutes < 60) {
+          return `${minutes} minute${minutes !== 1 ? "s" : ""} ago`;
+        }
+        const hours = Math.floor(minutes / 60);
+        if (hours < 24) {
+          return `${hours} hour${hours !== 1 ? "s" : ""} ago`;
+        }
+        const days = Math.floor(hours / 24);
+        return `${days} day${days !== 1 ? "s" : ""} ago`;
+      }
+
+      // Refresh cache display button
+      document
+        .getElementById("btn-refresh-cache")
+        .addEventListener("click", refreshCacheDisplay);
+
+      // Initial cache display
+      refreshCacheDisplay();
+
+      // Demo API calls
+      const responseArea = document.getElementById("response-area");
+      const responseSource = document.getElementById("response-source");
+      const responseTime = document.getElementById("response-time");
+
+      async function makeRequest(url, options = {}) {
+        const startTime = performance.now();
+        responseArea.textContent = "Loading...";
+        responseSource.textContent = "";
+        responseTime.textContent = "";
+
+        try {
+          const response = await fetch(url, options);
+          const endTime = performance.now();
+          const duration = (endTime - startTime).toFixed(2);
+
+          const data = await response.json();
+
+          // Determine if response came from cache
+          // If duration is very short (< 50ms), it's likely from cache
+          const isCacheHit = duration < 50 && options.method === "GET";
+
+          responseSource.innerHTML = isCacheHit
+            ? '<span class="badge cache-hit">Cache Hit</span>'
+            : '<span class="badge network">Network</span>';
+          responseTime.textContent = `(${duration}ms)`;
+
+          responseArea.textContent = JSON.stringify(data, null, 2);
+
+          // Refresh cache display after request
+          setTimeout(refreshCacheDisplay, 100);
+        } catch (error) {
+          responseSource.innerHTML = '<span class="badge error">Error</span>';
+          responseArea.textContent = `Error: ${error.message}`;
+        }
+      }
+
+      document
+        .getElementById("btn-get-users")
+        .addEventListener("click", () => makeRequest("/api/users"));
+      document
+        .getElementById("btn-get-user-1")
+        .addEventListener("click", () => makeRequest("/api/users/1"));
+      document
+        .getElementById("btn-get-posts")
+        .addEventListener("click", () => makeRequest("/api/posts"));
+      document.getElementById("btn-create-user").addEventListener("click", () =>
+        makeRequest("/api/users", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: "New User",
+            email: "newuser@example.com"
+          })
+        })
+      );
+      document.getElementById("btn-update-user").addEventListener("click", () =>
+        makeRequest("/api/users/1", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name: "Updated Name" })
+        })
+      );
+      document.getElementById("btn-delete-user").addEventListener("click", () =>
+        makeRequest("/api/users/2", {
+          method: "DELETE"
+        })
+      );
+    </script>
+  </body>
+</html>

@@ -83,5 +83,3 @@ Update [README.md](README.md):
 - Update the TODO item to mark it as complete
 
 ## Key Design Decisions
-
-- **Default value**: `maxCacheAgeSeconds` defaults to 7200 (2x default stale TTL of 3600)
