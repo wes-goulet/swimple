@@ -712,7 +712,57 @@ self.addEventListener("fetch", (event) => {
 });
 ```
 
-### Example 5: Logout with Cache Clear
+### Example 5: Different Strategies for Different Scopes
+
+You can compose multiple `handleRequest` methods to use different caching strategies for different scopes. For example, you might want `stale-while-revalidate` for static assets like fonts, and `cache-first` for API endpoints.
+
+```javascript
+// sw.js
+import { createHandleRequest } from "swimple";
+
+// Handler for fonts - use stale-while-revalidate for instant loading
+const handleFontsRequest = createHandleRequest({
+  cacheName: "fonts-cache-v1",
+  scope: ["/fonts/"],
+  defaultStrategy: "stale-while-revalidate",
+  defaultTTLSeconds: 86400, // Fresh for 24 hours
+  defaultStaleTTLSeconds: 604800 // Stale for up to 7 days
+});
+
+// Handler for API - use cache-first for fast responses
+const handleApiRequest = createHandleRequest({
+  cacheName: "api-cache-v1",
+  scope: ["/api/"],
+  defaultStrategy: "cache-first",
+  defaultTTLSeconds: 300 // Fresh for 5 minutes
+});
+
+self.addEventListener("fetch", (event) => {
+  // Try fonts handler first
+  let response = handleFontsRequest(event);
+  if (response) {
+    event.respondWith(response);
+    return;
+  }
+
+  // Then try API handler
+  response = handleApiRequest(event);
+  if (response) {
+    event.respondWith(response);
+    return;
+  }
+
+  // Fall through to network for other requests
+});
+```
+
+With this setup:
+
+- Requests to `/fonts/*` will use `stale-while-revalidate` - returning cached fonts immediately while updating in the background
+- Requests to `/api/*` will use `cache-first` - returning from cache if fresh, otherwise fetching from network
+- Each scope uses its own cache (`fonts-cache-v1` and `api-cache-v1`), so they can be managed independently
+
+### Example 6: Logout with Cache Clear
 
 ```javascript
 // Client code
@@ -728,7 +778,7 @@ async function logout() {
 }
 ```
 
-### Example 6: Custom Request Handler Chain
+### Example 7: Custom Request Handler Chain
 
 Your service worker might have other "handlers" or "middlewares" that need to be called before the cache handler.
 
