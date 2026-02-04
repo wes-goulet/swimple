@@ -125,9 +125,22 @@ export function isStale(response, ttl, staleTTL) {
  * @returns {Response}
  */
 export function addTimestamp(response) {
+  // Clone the response to get the body (since Response body can only be read once)
   const clonedResponse = response.clone();
-  clonedResponse.headers.set(CACHE_TIMESTAMP_HEADER, Date.now().toString());
-  return clonedResponse;
+
+  // Create a new Headers object initialized with the original headers
+  // Use original response headers (not cloned) since we're creating a new Response anyway
+  // (We can't mutate cloned headers because they may be immutable in browsers)
+  const newHeaders = new Headers(response.headers);
+  newHeaders.set(CACHE_TIMESTAMP_HEADER, Date.now().toString());
+
+  // Create a new Response with the new headers, preserving all other properties
+  // Use cloned body to avoid consuming the original response body
+  return new Response(clonedResponse.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers: newHeaders
+  });
 }
 
 /**

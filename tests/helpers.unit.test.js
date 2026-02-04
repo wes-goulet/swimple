@@ -21,11 +21,7 @@ import {
   isOlderThanMaxAge,
   cleanupOldCacheEntries
 } from "../src/helpers.js";
-import { MockCacheStorage } from "./MockCache.js";
-
-// Mock Cache API for Node.js environment
-// @ts-ignore - Mocking browser API for Node.js tests
-globalThis.caches = globalThis.caches || new MockCacheStorage();
+import "./test-setup.js";
 
 describe("getHeader", () => {
   test("returns header value when present", () => {

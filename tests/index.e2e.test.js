@@ -6,11 +6,7 @@
 import { test, describe } from "node:test";
 import assert from "node:assert";
 import { createHandleRequest } from "../src/index.js";
-import { MockCacheStorage } from "./MockCache.js";
-
-// Mock Cache API for Node.js environment
-// @ts-ignore - Mocking browser API for Node.js tests
-globalThis.caches = globalThis.caches || new MockCacheStorage();
+import "./test-setup.js";
 
 // Helper to create a FetchEvent-like object
 /**
