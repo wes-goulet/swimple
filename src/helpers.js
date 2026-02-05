@@ -284,9 +284,7 @@ export async function invalidateCache(cacheName, urls) {
  * @returns {Promise<void>}
  */
 export async function clearCache(cacheName) {
-  const cache = await caches.open(cacheName);
-  const keys = await cache.keys();
-  await Promise.allSettled(keys.map((request) => cache.delete(request)));
+  await caches.delete(cacheName);
 }
 
 /**

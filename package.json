@@ -1,6 +1,6 @@
 {
   "name": "swimple",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "A simple service worker library for request caching",
   "type": "module",
   "main": "./src/index.js",
@@ -34,6 +34,10 @@
   ],
   "author": "wes@goulet.dev",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/wes-goulet/swimple.git"
+  },
   "devDependencies": {
     "@playwright/test": "^1.57.0",
     "prettier": "^3.7.4",

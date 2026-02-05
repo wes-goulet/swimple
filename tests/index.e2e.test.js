@@ -1129,8 +1129,9 @@ describe("createHandleRequest", () => {
       // Verify it returned network data, not cached data
       assert.strictEqual(text, "Updated Users");
 
-      // Verify cache is cleared
-      const keys2 = await cache.keys();
+      // Verify cache is cleared (open fresh cache after deletion)
+      const cacheAfterClear = await caches.open(cacheName);
+      const keys2 = await cacheAfterClear.keys();
       assert.strictEqual(keys2.length, 0);
     });
 
@@ -1181,8 +1182,9 @@ describe("createHandleRequest", () => {
         { message: "Network error" }
       );
 
-      // Verify cache is still cleared even though network failed
-      const keys = await cache.keys();
+      // Verify cache is still cleared even though network failed (open fresh cache after deletion)
+      const cacheAfterClear = await caches.open(cacheName);
+      const keys = await cacheAfterClear.keys();
       assert.strictEqual(
         keys.length,
         0,
@@ -1230,8 +1232,9 @@ describe("createHandleRequest", () => {
         const clearEvent = createFetchEvent(clearRequest);
         await handleRequest(clearEvent);
 
-        // Verify cache is cleared regardless of value
-        const keys = await cache.keys();
+        // Verify cache is cleared regardless of value (open fresh cache after deletion)
+        const cacheAfterClear = await caches.open(cacheName);
+        const keys = await cacheAfterClear.keys();
         assert.strictEqual(
           keys.length,
           0,
