@@ -10,7 +10,7 @@
  *
  * @example
  * // CDN import
- * import { CACHE_STRATEGY_HEADER, CACHE_TTL_HEADER } from "https://cdn.jsdelivr.net/npm/swimple@1.0.0/headers.js";
+ * import { CACHE_STRATEGY_HEADER, CACHE_TTL_HEADER } from "https://cdn.jsdelivr.net/npm/swimple@1.0.6/headers.js";
  */
 
 /**

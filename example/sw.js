@@ -3,7 +3,7 @@
 /// <reference lib="webworker" />
 
 // @ts-expect-error - we're using a CDN import
-import { createHandleRequest } from "https://cdn.jsdelivr.net/npm/swimple@1.0.0/src/index.js";
+import { createHandleRequest } from "https://cdn.jsdelivr.net/npm/swimple@1.0.6/src/index.js";
 import { customFetch } from "./mock-api.js";
 
 // make typing easier

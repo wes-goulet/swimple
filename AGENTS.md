@@ -96,7 +96,7 @@ This document outlines the technical decisions and constraints for the swimple l
 
 ## Distribution
 
-- **CDN distribution** - via jsDelivr (e.g., `https://cdn.jsdelivr.net/npm/swimple@1.0.0/index.js`)
+- **CDN distribution** - via jsDelivr (e.g., `https://cdn.jsdelivr.net/npm/swimple@1.0.6/index.js`)
 - **NPM package** - publish to npm for `npm install swimple`
 - **ES Module only** - no CommonJS build, no UMD build
 

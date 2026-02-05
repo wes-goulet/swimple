@@ -17,7 +17,7 @@ A simple service worker library for request caching.
 
 ```javascript
 // sw.js
-import { createHandleRequest } from "https://cdn.jsdelivr.net/npm/swimple@1.0.4/src/index.js";
+import { createHandleRequest } from "https://cdn.jsdelivr.net/npm/swimple@1.0.6/src/index.js";
 ```
 
 ### NPM Install
@@ -50,7 +50,7 @@ try {
 
 ```javascript
 // sw.js
-import { createHandleRequest } from "https://cdn.jsdelivr.net/npm/swimple@1.0.4/src/index.js";
+import { createHandleRequest } from "https://cdn.jsdelivr.net/npm/swimple@1.0.6/src/index.js";
 
 // create the request handler
 const handleRequest = createHandleRequest({
@@ -228,7 +228,7 @@ You can also manually trigger cleanup in your service worker's `activate` handle
 
 ```javascript
 // sw.js
-import { cleanupOldCacheEntries } from "https://cdn.jsdelivr.net/npm/swimple@1.0.4/src/index.js";
+import { cleanupOldCacheEntries } from "https://cdn.jsdelivr.net/npm/swimple@1.0.6/src/index.js";
 
 self.addEventListener("activate", (event) => {
   event.waitUntil(
@@ -453,7 +453,7 @@ import {
   CACHE_STALE_TTL_HEADER,
   CACHE_INVALIDATE_HEADER,
   CACHE_CLEAR_HEADER
-} from "https://cdn.jsdelivr.net/npm/swimple@1.0.4/src/headers.js";
+} from "https://cdn.jsdelivr.net/npm/swimple@1.0.6/src/headers.js";
 
 // Use in your fetch calls
 const headers = new Headers();
